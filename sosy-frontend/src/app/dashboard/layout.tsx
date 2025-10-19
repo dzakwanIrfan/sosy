@@ -3,10 +3,10 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { DashboardNav } from '@/components/dashboard/DashboardNav';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
-export default function DashboardLayout({
+export default function DashboardLayoutWrapper({
   children,
 }: {
   children: React.ReactNode;
@@ -38,12 +38,5 @@ export default function DashboardLayout({
     return null;
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardNav />
-      <main className="container mx-auto py-6 px-4">
-        {children}
-      </main>
-    </div>
-  );
+  return <DashboardLayout>{children}</DashboardLayout>;
 }

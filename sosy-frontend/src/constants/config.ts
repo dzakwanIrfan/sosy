@@ -5,6 +5,7 @@ export const API_CONFIG = {
     LOGIN: '/auth/login',
     TEST_TOKEN: '/auth/test-token',
     USERS: '/users',
+    WP_USERS: '/wp-users',
   },
 } as const;
 
