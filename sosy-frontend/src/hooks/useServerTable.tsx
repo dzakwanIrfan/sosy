@@ -69,22 +69,33 @@ export function useServerTable<T>({
       state.columnFilters.forEach(filter => {
         if (filter.value !== undefined && filter.value !== null) {
           if (Array.isArray(filter.value) && filter.value.length > 0) {
-            // For multiple values (like faceted filters), convert to boolean filter
+            // Handle faceted filters (multiple selection)
             if (filter.id === 'is_active' || filter.id === 'is_superuser') {
-              // Convert string values to boolean
-              const booleanValues = filter.value.map(v => v === 'true');
-              if (booleanValues.length === 1) {
-                params[filter.id] = booleanValues[0];
+              // If only one value is selected, pass it as boolean
+              if (filter.value.length === 1) {
+                params[filter.id] = filter.value[0] === 'true';
               }
-              // If multiple values selected, don't apply filter (show all)
+              // If multiple values selected, don't apply server-side filter (show all)
+            } else if (filter.id === 'user_status') {
+              // For WordPress users status filter
+              if (filter.value.length === 1) {
+                params[filter.id] = parseInt(filter.value[0]);
+              }
+            } else {
+              // For other filters, pass array as-is or join them
+              params[filter.id] = filter.value;
             }
           } else if (typeof filter.value === 'string' && filter.value.trim()) {
             params[filter.id] = filter.value;
           } else if (typeof filter.value === 'boolean') {
             params[filter.id] = filter.value;
+          } else if (typeof filter.value === 'number') {
+            params[filter.id] = filter.value;
           }
         }
       });
+
+      console.info('Server table params:', params); // Debug log
 
       const response = await fetchData(params);
       

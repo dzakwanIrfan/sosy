@@ -38,12 +38,24 @@ const navigation: NavItem[] = [
   },
   {
     title: 'Master Data',
-    href: '/dashboard/master-data',
+    href: '/dashboard/masterdata',
     icon: Users,
     children: [
       {
         title: 'SOSY Users',
-        href: '/dashboard/master-data/users',
+        href: '/dashboard/masterdata/users',
+        icon: Users,
+      },
+    ],
+  },
+  {
+    title: 'WordPress Data',
+    href: '/dashboard/wordpressdata',
+    icon: Users,
+    children: [
+      {
+        title: 'SOSY Users',
+        href: '/dashboard/wordpressdata/wordpress-users',
         icon: Users,
       },
     ],

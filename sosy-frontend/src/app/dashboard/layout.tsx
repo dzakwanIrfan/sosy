@@ -25,7 +25,7 @@ export default function DashboardLayoutWrapper({
   if (!isInitialized || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
+        <div className="flex flex-col items-center justify-center">
           <LoadingSpinner size="lg" />
           <p className="mt-4 text-gray-600">Loading dashboard...</p>
         </div>

@@ -16,6 +16,7 @@ def read_wp_users(
     search: Optional[str] = Query(None, description="Search by username, email, or display name"),
     sort_by: Optional[str] = Query("user_registered", description="Sort by field"),
     sort_order: Optional[str] = Query("desc", regex="^(asc|desc)$", description="Sort order"),
+    user_status: Optional[int] = Query(None, description="Filter by user status"),
     current_user = Depends(get_current_active_user)
 ):
     """
@@ -38,7 +39,8 @@ def read_wp_users(
         limit=page_size,
         search=search,
         sort_by=sort_by,
-        sort_order=sort_order
+        sort_order=sort_order,
+        user_status=user_status
     )
     
     # Calculate pagination info

@@ -124,13 +124,18 @@ class CRUDWordPressUser:
         limit: int = 100,
         search: Optional[str] = None,
         sort_by: Optional[str] = None,
-        sort_order: Optional[str] = "asc"
+        sort_order: Optional[str] = "asc",
+        user_status: Optional[int] = None
     ) -> Tuple[List[WordPressUser], int]:
         """
         Get multiple WordPress users with advanced filtering, searching, sorting, and pagination
         Returns tuple of (users, total_count)
         """
         query = db.query(WordPressUser)
+        
+        # Apply status filter
+        if user_status is not None:
+            query = query.filter(WordPressUser.user_status == user_status)
         
         # Apply search
         if search:
