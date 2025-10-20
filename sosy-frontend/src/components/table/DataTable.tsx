@@ -3,14 +3,17 @@
 import * as React from 'react';
 import {
   ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
   useReactTable,
-  PaginationState,
-  SortingState,
-  ColumnFiltersState,
-  VisibilityState,
-  OnChangeFn,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
 } from '@tanstack/react-table';
 
 import {
@@ -25,74 +28,52 @@ import {
 import { DataTablePagination } from './DataTablePagination';
 import { DataTableToolbar } from './DataTableToolbar';
 import { DataTableSearchableColumn, DataTableFilterableColumn } from '@/lib/table-utils';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
-interface ServerDataTableProps<TData, TValue> {
+interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  loading?: boolean;
-  totalCount: number;
-  pagination: PaginationState;
-  sorting: SortingState;
-  globalFilter: string;
-  columnFilters: ColumnFiltersState;
-  onPaginationChange: OnChangeFn<PaginationState>;
-  onSortingChange: OnChangeFn<SortingState>;
-  onGlobalFilterChange: (globalFilter: string) => void;
-  onColumnFiltersChange: OnChangeFn<ColumnFiltersState>;
   filterableColumns?: DataTableFilterableColumn<TData>[];
   searchableColumns?: DataTableSearchableColumn<TData>[];
   newRowLink?: string;
   deleteRowsAction?: React.ReactNode;
 }
 
-export function ServerDataTable<TData, TValue>({
+export function DataTable<TData, TValue>({
   columns,
   data,
-  loading = false,
-  totalCount,
-  pagination,
-  sorting,
-  globalFilter,
-  columnFilters,
-  onPaginationChange,
-  onSortingChange,
-  onGlobalFilterChange,
-  onColumnFiltersChange,
   filterableColumns = [],
   searchableColumns = [],
   newRowLink,
   deleteRowsAction,
-}: ServerDataTableProps<TData, TValue>) {
+}: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-
-  // Calculate pageCount for server-side pagination
-  const pageCount = Math.ceil(totalCount / pagination.pageSize);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [globalFilter, setGlobalFilter] = React.useState('');
 
   const table = useReactTable({
     data,
     columns,
-    pageCount,
     state: {
-      pagination,
       sorting,
-      globalFilter,
-      columnFilters,
       columnVisibility,
       rowSelection,
+      columnFilters,
+      globalFilter,
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
-    onPaginationChange,
-    onSortingChange,
-    onGlobalFilterChange,
-    onColumnFiltersChange,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-    manualSorting: true,
-    manualFiltering: true,
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
   return (
@@ -105,7 +86,7 @@ export function ServerDataTable<TData, TValue>({
         deleteRowsAction={deleteRowsAction}
       />
       <div className="rounded-md border">
-        <Table bgcolor='white'>
+        <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -125,13 +106,7 @@ export function ServerDataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  <LoadingSpinner size="md" />
-                </TableCell>
-              </TableRow>
-            ) : table.getRowModel().rows?.length ? (
+            {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -153,14 +128,14 @@ export function ServerDataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results found.
+                  No results.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} totalCount={totalCount} />
+      <DataTablePagination table={table} />
     </div>
   );
 }

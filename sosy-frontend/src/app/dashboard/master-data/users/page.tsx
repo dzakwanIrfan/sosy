@@ -195,6 +195,7 @@ export default function UsersPage() {
         );
       },
       enableSorting: true,
+      enableHiding: false, // Always show username
     },
     {
       accessorKey: 'full_name',
@@ -205,6 +206,7 @@ export default function UsersPage() {
         <div>{row.getValue('full_name') || '-'}</div>
       ),
       enableSorting: true,
+      enableHiding: true,
     },
     {
       accessorKey: 'is_active',
@@ -220,6 +222,7 @@ export default function UsersPage() {
         );
       },
       enableSorting: true,
+      enableHiding: true,
       filterFn: (row, id, value) => {
         return value.includes(String(row.getValue(id)));
       },
@@ -239,6 +242,7 @@ export default function UsersPage() {
         );
       },
       enableSorting: true,
+      enableHiding: true,
       filterFn: (row, id, value) => {
         return value.includes(String(row.getValue(id)));
       },
@@ -254,10 +258,13 @@ export default function UsersPage() {
         </div>
       ),
       enableSorting: true,
+      enableHiding: true,
     },
     {
       id: 'actions',
+      header: 'Actions',
       enableHiding: false,
+      enableSorting: false,
       cell: ({ row }) => {
         const user = row.original;
         

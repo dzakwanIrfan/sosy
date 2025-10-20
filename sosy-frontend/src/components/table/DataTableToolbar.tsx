@@ -24,7 +24,7 @@ export function DataTableToolbar<TData>({
   newRowLink,
   deleteRowsAction,
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0;
+  const isFiltered = table.getState().columnFilters.length > 0 || table.getState().globalFilter;
   const [searchableColumn] = searchableColumns;
   
   // Local state for search input to handle debouncing
@@ -45,6 +45,13 @@ export function DataTableToolbar<TData>({
     }, 300);
 
     return () => clearTimeout(timeoutId);
+  }, [table]);
+
+  // Reset all filters
+  const handleResetFilters = useCallback(() => {
+    table.resetColumnFilters();
+    table.setGlobalFilter('');
+    setSearchValue('');
   }, [table]);
 
   return (
@@ -73,7 +80,7 @@ export function DataTableToolbar<TData>({
         {isFiltered && (
           <Button
             variant="ghost"
-            onClick={() => table.resetColumnFilters()}
+            onClick={handleResetFilters}
             className="h-8 px-2 lg:px-3"
           >
             Reset
