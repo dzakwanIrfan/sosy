@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { DataTableViewOptions } from './DataTableViewOptions';
 import { DataTableFacetedFilter } from './DataTableFacetedFilter';
 import { DataTableSearchableColumn, DataTableFilterableColumn } from '@/lib/table-utils';
+import { useCallback, useState, useEffect } from 'react';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -25,6 +26,26 @@ export function DataTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const [searchableColumn] = searchableColumns;
+  
+  // Local state for search input to handle debouncing
+  const [searchValue, setSearchValue] = useState(table.getState().globalFilter ?? '');
+
+  // Update local state when global filter changes externally
+  useEffect(() => {
+    setSearchValue(table.getState().globalFilter ?? '');
+  }, [table.getState().globalFilter]);
+
+  // Debounced search handler
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchValue(value);
+    
+    // Debounce the actual filter update
+    const timeoutId = setTimeout(() => {
+      table.setGlobalFilter(value);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [table]);
 
   return (
     <div className="flex w-full items-center justify-between space-x-2 overflow-auto p-1">
@@ -32,12 +53,8 @@ export function DataTableToolbar<TData>({
         {searchableColumn && (
           <Input
             placeholder={`Search ${searchableColumn.title}...`}
-            value={
-              (table.getColumn(String(searchableColumn.id))?.getFilterValue() as string) ?? ''
-            }
-            onChange={(event) =>
-              table.getColumn(String(searchableColumn.id))?.setFilterValue(event.target.value)
-            }
+            value={searchValue}
+            onChange={(event) => handleSearchChange(event.target.value)}
             className="h-8 w-[150px] lg:w-[250px]"
           />
         )}

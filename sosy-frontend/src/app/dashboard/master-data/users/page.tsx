@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DataTable } from '@/components/table/DataTable';
+import { ServerDataTable } from '@/components/table/ServerDataTable';
 import { DataTableColumnHeader } from '@/components/table/DataTableColumnHeader';
 import { formatDateTime } from '@/lib/table-utils';
 import { MoreHorizontal, Eye, Edit, Trash2, Shield, User } from 'lucide-react';
@@ -18,9 +18,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { SosyUser, usersApi } from '@/lib/api/users';
+import { SosyUser, usersApi, UserListResponse, GetUsersParams } from '@/lib/api/users';
 import { toast } from 'sonner';
 import { DataTableSearchableColumn, DataTableFilterableColumn } from '@/lib/table-utils';
+import { useServerTable } from '@/hooks/useServerTable';
 
 // Import dialog components
 import { CreateUserDialog } from '@/components/users/CreateUserDialog';
@@ -29,9 +30,6 @@ import { EditUserDialog } from '@/components/users/EditUserDialog';
 import { DeleteUserDialog } from '@/components/users/DeleteUserDialog';
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<SosyUser[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  
   // Dialog states
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -39,24 +37,31 @@ export default function UsersPage() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [selectedUser, setSelectedUser] = useState<SosyUser | null>(null);
 
-  // Fetch users on component mount
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  // Server table hook
+  const fetchUsers = useCallback(async (params: GetUsersParams): Promise<UserListResponse> => {
     try {
-      setIsLoading(true);
-      const fetchedUsers = await usersApi.getUsers({ limit: 100 });
-      setUsers(fetchedUsers);
-      console.info(`Loaded ${fetchedUsers.length} users`);
+      return await usersApi.getUsers(params);
     } catch (error: any) {
       console.error('Failed to fetch users:', error);
       toast.error('Failed to fetch users');
-    } finally {
-      setIsLoading(false);
+      throw error;
     }
-  };
+  }, []);
+
+  const {
+    data: users,
+    loading,
+    totalCount,
+    state,
+    setPagination,
+    setSorting,
+    setGlobalFilter,
+    setColumnFilters,
+    refetch,
+  } = useServerTable({
+    fetchData: fetchUsers,
+    initialPageSize: 10,
+  });
 
   const handleToggleUserStatus = async (user: SosyUser) => {
     try {
@@ -64,9 +69,8 @@ export default function UsersPage() {
         is_active: !user.is_active,
       });
       
-      // Update user in local state
-      setUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
       toast.success(`User ${updatedUser.is_active ? 'activated' : 'deactivated'} successfully`);
+      refetch(); // Refetch data from server
     } catch (error: any) {
       console.error('Failed to update user status:', error);
       toast.error('Failed to update user status');
@@ -87,6 +91,18 @@ export default function UsersPage() {
   const handleDeleteUser = (user: SosyUser) => {
     setSelectedUser(user);
     setDeleteDialogOpen(true);
+  };
+
+  const handleUserCreated = () => {
+    refetch();
+  };
+
+  const handleUserUpdated = () => {
+    refetch();
+  };
+
+  const handleUserDeleted = () => {
+    refetch();
   };
 
   // Define searchable columns
@@ -178,6 +194,7 @@ export default function UsersPage() {
           </div>
         );
       },
+      enableSorting: true,
     },
     {
       accessorKey: 'full_name',
@@ -187,6 +204,7 @@ export default function UsersPage() {
       cell: ({ row }) => (
         <div>{row.getValue('full_name') || '-'}</div>
       ),
+      enableSorting: true,
     },
     {
       accessorKey: 'is_active',
@@ -201,6 +219,7 @@ export default function UsersPage() {
           </Badge>
         );
       },
+      enableSorting: true,
       filterFn: (row, id, value) => {
         return value.includes(String(row.getValue(id)));
       },
@@ -219,6 +238,7 @@ export default function UsersPage() {
           </Badge>
         );
       },
+      enableSorting: true,
       filterFn: (row, id, value) => {
         return value.includes(String(row.getValue(id)));
       },
@@ -233,6 +253,7 @@ export default function UsersPage() {
           {formatDateTime(row.getValue('created_at'))}
         </div>
       ),
+      enableSorting: true,
     },
     {
       id: 'actions',
@@ -279,24 +300,6 @@ export default function UsersPage() {
     },
   ];
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">SOSY Users</h1>
-            <p className="text-muted-foreground">
-              Manage users in the SOSY platform
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center justify-center h-32">
-          <div>Loading users...</div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="space-y-6">
@@ -304,15 +307,25 @@ export default function UsersPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">SOSY Users</h1>
             <p className="text-muted-foreground">
-              Manage users in the SOSY platform ({users.length} total)
+              Manage users in the SOSY platform ({totalCount} total)
             </p>
           </div>
-          <CreateUserDialog onUserCreated={fetchUsers} />
+          <CreateUserDialog onUserCreated={handleUserCreated} />
         </div>
 
-        <DataTable
+        <ServerDataTable
           columns={columns}
           data={users}
+          loading={loading}
+          totalCount={totalCount}
+          pagination={state.pagination}
+          sorting={state.sorting}
+          globalFilter={state.globalFilter}
+          columnFilters={state.columnFilters}
+          onPaginationChange={setPagination}
+          onSortingChange={setSorting}
+          onGlobalFilterChange={setGlobalFilter}
+          onColumnFiltersChange={setColumnFilters}
           searchableColumns={searchableColumns}
           filterableColumns={filterableColumns}
         />
@@ -332,7 +345,7 @@ export default function UsersPage() {
           userId={selectedUserId}
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
-          onUserUpdated={fetchUsers}
+          onUserUpdated={handleUserUpdated}
         />
       )}
 
@@ -340,7 +353,7 @@ export default function UsersPage() {
         user={selectedUser}
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        onUserDeleted={fetchUsers}
+        onUserDeleted={handleUserDeleted}
       />
     </>
   );

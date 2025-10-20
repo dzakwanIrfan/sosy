@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel, EmailStr
 
@@ -31,6 +31,15 @@ class UserInDB(UserBase):
 class User(UserInDB):
     pass
 
+class UserListResponse(BaseModel):
+    data: List[User]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool
+
 # WordPress User Schemas
 class WordPressUserBase(BaseModel):
     user_login: str
@@ -46,6 +55,15 @@ class WordPressUser(WordPressUserBase):
 
     class Config:
         from_attributes = True
+
+class WordPressUserListResponse(BaseModel):
+    data: List[WordPressUser]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool
 
 # Auth Schemas
 class Token(BaseModel):

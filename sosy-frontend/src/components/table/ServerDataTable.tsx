@@ -3,17 +3,14 @@
 import * as React from 'react';
 import {
   ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   useReactTable,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
+  PaginationState,
+  SortingState,
+  ColumnFiltersState,
+  VisibilityState,
+  OnChangeFn,
 } from '@tanstack/react-table';
 
 import {
@@ -28,49 +25,74 @@ import {
 import { DataTablePagination } from './DataTablePagination';
 import { DataTableToolbar } from './DataTableToolbar';
 import { DataTableSearchableColumn, DataTableFilterableColumn } from '@/lib/table-utils';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
-interface DataTableProps<TData, TValue> {
+interface ServerDataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  loading?: boolean;
+  totalCount: number;
+  pagination: PaginationState;
+  sorting: SortingState;
+  globalFilter: string;
+  columnFilters: ColumnFiltersState;
+  onPaginationChange: OnChangeFn<PaginationState>;
+  onSortingChange: OnChangeFn<SortingState>;
+  onGlobalFilterChange: (globalFilter: string) => void;
+  onColumnFiltersChange: OnChangeFn<ColumnFiltersState>;
   filterableColumns?: DataTableFilterableColumn<TData>[];
   searchableColumns?: DataTableSearchableColumn<TData>[];
   newRowLink?: string;
   deleteRowsAction?: React.ReactNode;
 }
 
-export function DataTable<TData, TValue>({
+export function ServerDataTable<TData, TValue>({
   columns,
   data,
+  loading = false,
+  totalCount,
+  pagination,
+  sorting,
+  globalFilter,
+  columnFilters,
+  onPaginationChange,
+  onSortingChange,
+  onGlobalFilterChange,
+  onColumnFiltersChange,
   filterableColumns = [],
   searchableColumns = [],
   newRowLink,
   deleteRowsAction,
-}: DataTableProps<TData, TValue>) {
+}: ServerDataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+
+  // Calculate pageCount for server-side pagination
+  const pageCount = Math.ceil(totalCount / pagination.pageSize);
 
   const table = useReactTable({
     data,
     columns,
+    pageCount,
     state: {
+      pagination,
       sorting,
+      globalFilter,
+      columnFilters,
       columnVisibility,
       rowSelection,
-      columnFilters,
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
+    onPaginationChange,
+    onSortingChange,
+    onGlobalFilterChange,
+    onColumnFiltersChange,
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
+    manualPagination: true,
+    manualSorting: true,
+    manualFiltering: true,
   });
 
   return (
@@ -103,7 +125,13 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  <LoadingSpinner size="md" />
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -125,7 +153,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  No results found.
                 </TableCell>
               </TableRow>
             )}

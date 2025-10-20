@@ -12,6 +12,16 @@ export interface SosyUser {
   updated_at?: string;
 }
 
+export interface UserListResponse {
+  data: SosyUser[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  has_next: boolean;
+  has_prev: boolean;
+}
+
 export interface CreateUserRequest {
   username: string;
   email: string;
@@ -27,18 +37,31 @@ export interface UpdateUserRequest {
   is_superuser?: boolean;
 }
 
+export interface GetUsersParams {
+  page?: number;
+  page_size?: number;
+  search?: string;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
+  is_active?: boolean;
+  is_superuser?: boolean;
+}
+
 export const usersApi = {
-  // Get all users (admin only)
-  getUsers: async (params?: {
-    skip?: number;
-    limit?: number;
-  }): Promise<SosyUser[]> => {
+  // Get all users with server-side pagination, sorting, filtering
+  getUsers: async (params: GetUsersParams = {}): Promise<UserListResponse> => {
     const queryParams = new URLSearchParams();
-    if (params?.skip) queryParams.append('skip', params.skip.toString());
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.page_size) queryParams.append('page_size', params.page_size.toString());
+    if (params.search) queryParams.append('search', params.search);
+    if (params.sort_by) queryParams.append('sort_by', params.sort_by);
+    if (params.sort_order) queryParams.append('sort_order', params.sort_order);
+    if (params.is_active !== undefined) queryParams.append('is_active', params.is_active.toString());
+    if (params.is_superuser !== undefined) queryParams.append('is_superuser', params.is_superuser.toString());
     
     const url = `${API_CONFIG.ENDPOINTS.USERS}?${queryParams}`;
-    return api.get<SosyUser[]>(url);
+    return api.get<UserListResponse>(url);
   },
 
   // Get user by ID
