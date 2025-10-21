@@ -131,7 +131,7 @@ class CRUDWordPressUser:
         Get multiple WordPress users with advanced filtering, searching, sorting, and pagination
         Returns tuple of (users, total_count)
         """
-        query = db.query(WordPressUser)
+        query = db.query(WordPressUser).order_by(WordPressUser.ID)
         
         # Apply status filter
         if user_status is not None:
@@ -161,8 +161,8 @@ class CRUDWordPressUser:
                 else:
                     query = query.order_by(asc(column))
         else:
-            # Default sort by user_registered desc
-            query = query.order_by(desc(WordPressUser.user_registered))
+            # Default sort by user_registered asc
+            query = query.order_by(asc(WordPressUser.user_registered))
         
         # Apply pagination
         users = query.offset(skip).limit(limit).all()
