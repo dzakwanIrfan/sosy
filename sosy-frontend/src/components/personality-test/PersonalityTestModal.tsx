@@ -4,23 +4,22 @@ import { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { personalityTestApi, PersonalityTestResult } from '@/lib/api/personality-test';
 import { format } from 'date-fns';
 import { 
-  Calendar, 
-  Clock, 
-  Award, 
-  CheckCircle2, 
-  MessageSquare,
-  AlertCircle 
+  User,
+  CalendarDays, 
+  AlertCircle,
+  Info,
+  Sparkles,
+  Award
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -63,133 +62,133 @@ export function PersonalityTestModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Award className="h-5 w-5 text-blue-600" />
-            Personality Test Results
-          </DialogTitle>
-          <DialogDescription>
-            {userName ? `Test results for ${userName}` : 'View personality test answers and scores'}
-          </DialogDescription>
+      <DialogContent className="max-w-3xl max-h-[85vh] p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 space-y-3">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1.5">
+              <DialogTitle className="text-xl">Personality Assessment</DialogTitle>
+              {userName && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <User className="h-4 w-4" />
+                  <span>{userName}</span>
+                </div>
+              )}
+            </div>
+          </div>
         </DialogHeader>
 
+        <Separator />
+
         {loading ? (
-          <div className="flex items-center justify-center py-12">
+          <div className="flex items-center justify-center py-16">
             <LoadingSpinner size="lg" />
           </div>
         ) : error ? (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+          <div className="px-6 py-4">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          </div>
         ) : testResult ? (
-          <ScrollArea className="max-h-[calc(90vh-120px)] pr-4">
-            <div className="space-y-6">
-              {/* Summary Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Test Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="flex items-center space-x-2">
-                      <Award className="h-4 w-4 text-yellow-500" />
-                      <div className="text-sm">
-                        <p className="text-muted-foreground">Total Points</p>
-                        <p className="font-semibold">{testResult.total_points}</p>
-                      </div>
+          <ScrollArea className="h-[calc(85vh-140px)]">
+            <div className="px-6 pb-6 space-y-6">
+              {/* Personality Type Card */}
+              {testResult.personality_type && (
+                <div className="rounded-lg border bg-gradient-to-br from-primary/5 to-primary/10 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-full bg-primary/10 p-2">
+                      <Sparkles className="h-5 w-5 text-primary" />
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <MessageSquare className="h-4 w-4 text-blue-500" />
-                      <div className="text-sm">
-                        <p className="text-muted-foreground">Total Answers</p>
-                        <p className="font-semibold">{testResult.answers.length}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4 text-green-500" />
-                      <div className="text-sm">
-                        <p className="text-muted-foreground">Started</p>
-                        <p className="font-semibold">
-                          {testResult.date_started
-                            ? format(new Date(testResult.date_started), 'MMM dd, yyyy')
-                            : '-'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Clock className="h-4 w-4 text-purple-500" />
-                      <div className="text-sm">
-                        <p className="text-muted-foreground">Completed</p>
-                        <p className="font-semibold">
-                          {testResult.date_finished
-                            ? format(new Date(testResult.date_finished), 'MMM dd, yyyy')
-                            : '-'}
-                        </p>
-                      </div>
+                    <div className="flex-1 space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Personality Type</p>
+                      <p className="text-2xl font-semibold">{testResult.personality_type}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              )}
 
-              {/* Questions and Answers */}
+              {/* Assessment Info */}
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <CalendarDays className="h-4 w-4" />
+                  <span>
+                    Completed on{' '}
+                    {testResult.date_finished
+                      ? format(new Date(testResult.date_finished), 'MMMM d, yyyy')
+                      : 'N/A'}
+                  </span>
+                </div>
+                <Badge variant="outline">{testResult.answers.length} Questions</Badge>
+              </div>
+
+              <Separator />
+
+              {/* Responses Section */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  Questions & Answers
-                </h3>
-
-                {testResult.answers.map((answer, index) => (
-                  <Card key={`${answer.question_id}-${answer.answer_id}`} className="border-l-4 border-l-blue-500">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="outline" className="text-xs">
-                              Q{index + 1}
-                            </Badge>
-                            {answer.answer_points !== null && (
-                              <Badge variant="secondary" className="text-xs">
-                                {answer.answer_points} pts
-                              </Badge>
+                <h3 className="text-sm font-medium text-muted-foreground">Assessment Responses</h3>
+                
+                <div className="space-y-3">
+                  {testResult.answers.map((answer, index) => (
+                    <div
+                      key={`${answer.question_id}-${answer.answer_id}`}
+                      className="group rounded-lg border bg-card transition-colors hover:border-primary/50"
+                    >
+                      <div className="p-4 space-y-3">
+                        {/* Question */}
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 mt-0.5">
+                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                              {index + 1}
+                            </div>
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <p className="text-sm font-medium leading-relaxed">
+                              {answer.question_text}
+                            </p>
+                            {answer.question_description && (
+                              <p className="text-xs text-muted-foreground">
+                                {answer.question_description}
+                              </p>
                             )}
                           </div>
-                          <CardTitle className="text-base font-medium">
-                            {answer.question_text}
-                          </CardTitle>
-                          {answer.question_description && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {answer.question_description}
-                            </p>
+                        </div>
+
+                        {/* Answer */}
+                        <div className="ml-9 space-y-2">
+                          <div className="inline-flex items-center gap-2 rounded-md bg-muted px-3 py-1.5">
+                            <span className="text-sm">{answer.answer_text}</span>
+                            {answer.answer_points !== null && answer.answer_points !== undefined && (
+                              <div className="flex items-center gap-1 ml-1 pl-2 border-l">
+                                <Award className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+                                <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
+                                  {answer.answer_points} {answer.answer_points === 1 ? 'pt' : 'pts'}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {answer.custom_answer_text && (
+                            <div className="rounded-md bg-accent/50 px-3 py-2">
+                              <p className="text-xs text-muted-foreground italic">
+                                "{answer.custom_answer_text}"
+                              </p>
+                            </div>
+                          )}
+                          
+                          {answer.answer_feedback && (
+                            <div className="flex items-start gap-2 rounded-md bg-blue-50 dark:bg-blue-950/20 px-3 py-2">
+                              <Info className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                              <p className="text-xs text-blue-900 dark:text-blue-300">
+                                {answer.answer_feedback}
+                              </p>
+                            </div>
                           )}
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="bg-green-50 border border-green-200 rounded-md p-3">
-                        <div className="flex items-start gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-green-900">
-                              {answer.answer_text}
-                            </p>
-                            {answer.custom_answer_text && (
-                              <p className="text-sm text-green-700 mt-1 italic">
-                                "{answer.custom_answer_text}"
-                              </p>
-                            )}
-                            {answer.answer_feedback && (
-                              <p className="text-xs text-green-600 mt-2">
-                                💡 {answer.answer_feedback}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </ScrollArea>

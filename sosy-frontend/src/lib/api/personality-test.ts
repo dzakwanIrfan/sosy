@@ -16,6 +16,7 @@ export interface PersonalityTestResult {
   date_started: string | null;
   date_finished: string | null;
   total_points: number;
+  personality_type: string | null; 
   answers: PersonalityTestAnswer[];
 }
 
@@ -27,19 +28,16 @@ export interface PersonalityTestStatus {
 }
 
 export const personalityTestApi = {
-  // Check if user has completed test
   checkStatus: async (wpUserId: number): Promise<PersonalityTestStatus> => {
     const response = await apiClient.get(`/personality-test/status/${wpUserId}`);
     return response.data;
   },
 
-  // Get full test result
   getTestResult: async (wpUserId: number): Promise<PersonalityTestResult> => {
     const response = await apiClient.get(`/personality-test/${wpUserId}`);
     return response.data;
   },
 
-  // Get test by TQB User ID
   getTestByTqbId: async (tqbUserId: number): Promise<PersonalityTestResult> => {
     const response = await apiClient.get(`/personality-test/by-tqb-id/${tqbUserId}`);
     return response.data;

@@ -99,6 +99,7 @@ class CRUDPersonalityTest:
             'date_started': latest_test.date_started,
             'date_finished': latest_test.date_finished,
             'total_points': total_points,
+            'personality_type': latest_test.points,  
             'answers': formatted_answers
         }
     
@@ -162,6 +163,7 @@ class CRUDPersonalityTest:
             'date_started': test.date_started,
             'date_finished': test.date_finished,
             'total_points': total_points,
+            'personality_type': test.points,  
             'answers': formatted_answers
         }
 

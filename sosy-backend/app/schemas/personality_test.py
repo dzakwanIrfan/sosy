@@ -29,7 +29,7 @@ class UserAnswerDetail(BaseModel):
     answer_text: str
     answer_points: Optional[int] = None
     answer_feedback: Optional[str] = None
-    custom_answer_text: Optional[str] = None  # From answer_text column if filled
+    custom_answer_text: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -40,6 +40,7 @@ class PersonalityTestResult(BaseModel):
     date_started: Optional[datetime] = None
     date_finished: Optional[datetime] = None
     total_points: int
+    personality_type: Optional[str] = None 
     answers: List[UserAnswerDetail]
     
     class Config:
