@@ -12,17 +12,26 @@ class CRUDEvent:
         limit: int = 10,
         search: Optional[str] = None,
         sort_by: str = "post_date",
-        sort_order: str = "desc"
+        sort_order: str = "desc",
+        post_status: Optional[str] = None  # Bisa comma-separated values
     ) -> Tuple[List[WordPressPost], int]:
         """
-        Get published products (events) with pagination and search
+        Get products (events) with pagination and search
         """
+        # Base query - hanya filter post_type = product
         query = db.query(WordPressPost).filter(
-            and_(
-                WordPressPost.post_status == 'publish',
-                WordPressPost.post_type == 'product'
-            )
+            WordPressPost.post_type == 'product'
         )
+        
+        # Optional status filter - support multiple statuses
+        if post_status:
+            # Split by comma to support multiple statuses
+            statuses = [s.strip() for s in post_status.split(',') if s.strip()]
+            if statuses:
+                if len(statuses) == 1:
+                    query = query.filter(WordPressPost.post_status == statuses[0])
+                else:
+                    query = query.filter(WordPressPost.post_status.in_(statuses))
         
         # Search filter
         if search:
@@ -56,7 +65,6 @@ class CRUDEvent:
         return db.query(WordPressPost).filter(
             and_(
                 WordPressPost.ID == event_id,
-                WordPressPost.post_status == 'publish',
                 WordPressPost.post_type == 'product'
             )
         ).first()
@@ -110,7 +118,7 @@ class CRUDEvent:
                 'user_id': buyer.user_id,
                 'user_login': buyer.user_login,
                 'user_email': buyer.user_email,
-                'display_name': buyer.display_name,
+                'display_name': buyer.display_name or buyer.user_login,
                 'order_id': buyer.order_id,
                 'order_status': buyer.order_status,
                 'total_amount': float(buyer.total_amount) if buyer.total_amount else None,

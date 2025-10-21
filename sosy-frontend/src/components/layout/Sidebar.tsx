@@ -51,12 +51,17 @@ const navigation: NavItem[] = [
   {
     title: 'WordPress Data',
     href: '/dashboard/wordpressdata',
-    icon: Users,
+    icon: Database,
     children: [
       {
-        title: 'SOSY Users',
+        title: 'WP Users',
         href: '/dashboard/wordpressdata/wordpress-users',
         icon: Users,
+      },
+      {
+        title: 'Events',
+        href: '/dashboard/events',
+        icon: Calendar,
       },
     ],
   },

@@ -16,16 +16,17 @@ def read_events(
     search: Optional[str] = Query(None, description="Search by title, content, or excerpt"),
     sort_by: Optional[str] = Query("post_date", description="Sort by field"),
     sort_order: Optional[str] = Query("desc", regex="^(asc|desc)$", description="Sort order"),
+    post_status: Optional[str] = Query(None, description="Filter by post status"),
     current_user = Depends(get_current_active_user)
 ):
     """
-    Retrieve published events (products) with pagination and search
+    Retrieve events (products) with pagination and search
     """
     # Calculate skip
     skip = (page - 1) * page_size
     
     # Validate sort_by field
-    valid_sort_fields = ["ID", "post_title", "post_date", "post_modified"]
+    valid_sort_fields = ["ID", "post_title", "post_date", "post_modified", "post_status"]
     if sort_by not in valid_sort_fields:
         raise HTTPException(
             status_code=400,
@@ -38,7 +39,8 @@ def read_events(
         limit=page_size,
         search=search,
         sort_by=sort_by,
-        sort_order=sort_order
+        sort_order=sort_order,
+        post_status=post_status
     )
     
     # Calculate pagination info

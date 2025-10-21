@@ -1,4 +1,3 @@
-// Auth Types (sesuai dengan backend schemas)
 export interface LoginCredentials {
   username: string;
   password: string;

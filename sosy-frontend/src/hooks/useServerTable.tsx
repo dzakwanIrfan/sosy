@@ -81,9 +81,17 @@ export function useServerTable<T>({
               if (filter.value.length === 1) {
                 params[filter.id] = parseInt(filter.value[0]);
               }
+            } else if (filter.id === 'post_status') {
+              // Send as comma-separated string to backend
+              params[filter.id] = filter.value.join(',');
             } else {
-              // For other filters, pass array as-is or join them
-              params[filter.id] = filter.value;
+              // For other filters, pass the first value or join them
+              if (filter.value.length === 1) {
+                params[filter.id] = filter.value[0];
+              } else {
+                // For multiple values, pass as comma-separated
+                params[filter.id] = filter.value.join(',');
+              }
             }
           } else if (typeof filter.value === 'string' && filter.value.trim()) {
             params[filter.id] = filter.value;
