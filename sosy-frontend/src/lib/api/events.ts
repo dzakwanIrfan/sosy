@@ -21,6 +21,7 @@ export interface EventBuyer {
   total_amount: number | null;
   payment_method_title: string | null;
   date_created: string | null;
+  has_personality_test: boolean; 
 }
 
 export interface EventListResponse {

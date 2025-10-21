@@ -10,6 +10,7 @@ export interface WordPressUser {
   user_url?: string;
   user_registered?: string;
   user_status: number;
+  has_personality_test?: boolean; 
 }
 
 export interface WordPressUserListResponse {

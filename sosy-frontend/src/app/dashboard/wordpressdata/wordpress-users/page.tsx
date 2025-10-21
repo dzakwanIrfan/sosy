@@ -8,12 +8,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ServerDataTable } from '@/components/table/ServerDataTable';
 import { DataTableColumnHeader } from '@/components/table/DataTableColumnHeader';
 import { formatDateTime } from '@/lib/table-utils';
-import { MoreHorizontal, Eye, Globe, ExternalLink } from 'lucide-react';
+import { MoreHorizontal, Eye, Globe, ExternalLink, Award } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -22,11 +23,17 @@ import { toast } from 'sonner';
 import { DataTableSearchableColumn, DataTableFilterableColumn } from '@/lib/table-utils';
 import { useServerTable } from '@/hooks/useServerTable';
 import { ViewWordPressUserDialog } from '@/components/wp-users/ViewWordPressUserDialog';
+import { PersonalityTestModal } from '@/components/personality-test/PersonalityTestModal';
 
 export default function WordPressUsersPage() {
   // Dialog states
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  
+  // Personality Test Modal states
+  const [testModalOpen, setTestModalOpen] = useState(false);
+  const [selectedTestUserId, setSelectedTestUserId] = useState<number | null>(null);
+  const [selectedTestUserName, setSelectedTestUserName] = useState<string>('');
 
   // Server table hook
   const fetchUsers = useCallback(async (params: GetWordPressUsersParams): Promise<WordPressUserListResponse> => {
@@ -62,6 +69,12 @@ export default function WordPressUsersPage() {
 
   const handleVisitWebsite = (url: string) => {
     window.open(url, '_blank');
+  };
+
+  const handleViewPersonalityTest = (userId: number, userName: string) => {
+    setSelectedTestUserId(userId);
+    setSelectedTestUserName(userName);
+    setTestModalOpen(true);
   };
 
   // Define searchable columns
@@ -179,23 +192,23 @@ export default function WordPressUsersPage() {
       enableHiding: true,
     },
     {
-        accessorKey: 'user_status',
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Status" />
-        ),
-        cell: ({ row }) => {
-            const status = row.getValue('user_status') as number;
-            return getStatusBadge(status);
-        },
-        enableSorting: true,
-        enableHiding: true,
-        filterFn: (row, id, value) => {
-            // Handle array of selected values
-            if (Array.isArray(value)) {
-                return value.includes(String(row.getValue(id)));
-            }
-            return String(row.getValue(id)) === String(value);
-        },
+      accessorKey: 'user_status',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Status" />
+      ),
+      cell: ({ row }) => {
+        const status = row.getValue('user_status') as number;
+        return getStatusBadge(status);
+      },
+      enableSorting: true,
+      enableHiding: true,
+      filterFn: (row, id, value) => {
+        // Handle array of selected values
+        if (Array.isArray(value)) {
+          return value.includes(String(row.getValue(id)));
+        }
+        return String(row.getValue(id)) === String(value);
+      },
     },
     {
       accessorKey: 'user_url',
@@ -261,11 +274,23 @@ export default function WordPressUsersPage() {
                 <Eye className="mr-2 h-4 w-4" />
                 View details
               </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => handleViewPersonalityTest(
+                  user.ID, 
+                  user.display_name || user.user_login
+                )}
+              >
+                <Award className="mr-2 h-4 w-4" />
+                View Personality Test
+              </DropdownMenuItem>
               {user.user_url && (
-                <DropdownMenuItem onClick={() => handleVisitWebsite(user.user_url!)}>
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Visit website
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => handleVisitWebsite(user.user_url!)}>
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Visit website
+                  </DropdownMenuItem>
+                </>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -310,6 +335,16 @@ export default function WordPressUsersPage() {
           userId={selectedUserId}
           open={viewDialogOpen}
           onOpenChange={setViewDialogOpen}
+        />
+      )}
+
+      {/* Personality Test Modal */}
+      {selectedTestUserId && (
+        <PersonalityTestModal
+          open={testModalOpen}
+          onOpenChange={setTestModalOpen}
+          wpUserId={selectedTestUserId}
+          userName={selectedTestUserName}
         />
       )}
     </>

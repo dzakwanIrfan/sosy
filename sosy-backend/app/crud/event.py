@@ -1,8 +1,9 @@
 from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, func
+from sqlalchemy import and_, or_, func, select, case
 from app.models.event import WordPressPost, WooCommerceOrderItem, WooCommerceOrder
 from app.models.user import WordPressUser
+from app.models.personality_test import TQBUser
 
 class CRUDEvent:
     def get_events(
@@ -13,7 +14,7 @@ class CRUDEvent:
         search: Optional[str] = None,
         sort_by: str = "post_date",
         sort_order: str = "desc",
-        post_status: Optional[str] = None  # Bisa comma-separated values
+        post_status: Optional[str] = None
     ) -> Tuple[List[WordPressPost], int]:
         """
         Get products (events) with pagination and search
@@ -75,12 +76,25 @@ class CRUDEvent:
         event_id: int
     ) -> List[dict]:
         """
-        Get buyers for specific event
+        Get buyers for specific event with personality test status
         """
         # First, get the event
         event = self.get_event_by_id(db, event_id)
         if not event:
             return []
+        
+        # Create subquery to check if user has completed personality test
+        has_test_subquery = (
+            select(TQBUser.id)
+            .where(
+                and_(
+                    TQBUser.wp_user_id == WordPressUser.ID,
+                    TQBUser.completed_quiz == True,
+                    TQBUser.wp_user_id != 0
+                )
+            )
+            .exists()
+        )
         
         # Query to join all tables and get buyers
         query = db.query(
@@ -92,7 +106,9 @@ class CRUDEvent:
             WooCommerceOrder.status.label('order_status'),
             WooCommerceOrder.total_amount,
             WooCommerceOrder.payment_method_title,
-            WooCommerceOrder.date_created_gmt.label('date_created')
+            WooCommerceOrder.date_created_gmt.label('date_created'),
+            # Check if user has completed personality test
+            has_test_subquery.label('has_personality_test')
         ).join(
             WooCommerceOrder,
             WordPressUser.ID == WooCommerceOrder.customer_id
@@ -123,7 +139,8 @@ class CRUDEvent:
                 'order_status': buyer.order_status,
                 'total_amount': float(buyer.total_amount) if buyer.total_amount else None,
                 'payment_method_title': buyer.payment_method_title,
-                'date_created': buyer.date_created
+                'date_created': buyer.date_created,
+                'has_personality_test': buyer.has_personality_test
             })
         
         return result

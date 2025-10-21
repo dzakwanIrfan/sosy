@@ -40,6 +40,7 @@ class EventBuyer(EventBuyerBase):
     total_amount: Optional[float] = None
     payment_method_title: Optional[str] = None
     date_created: Optional[datetime] = None
+    has_personality_test: bool = False  
 
     class Config:
         from_attributes = True
