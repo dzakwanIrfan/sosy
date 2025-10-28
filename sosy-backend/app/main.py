@@ -9,16 +9,20 @@ app = FastAPI(
     openapi_url="/api/v1/openapi.json"
 )
 
+origins = [
+    "https://sosy.vercel.app",
+    "https://sosy.daylightapp.asia",
+    "http://localhost:3000",
+    "http://localhost:8000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://sosy.vercel.app",
-        "https://sosy.daylightapp.asia",
-        "http://localhost:3000", 
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 app.include_router(api_router, prefix="/api/v1")
