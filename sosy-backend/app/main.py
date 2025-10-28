@@ -9,10 +9,13 @@ app = FastAPI(
     openapi_url="/api/v1/openapi.json"
 )
 
-# Set up CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure this properly in production
+    allow_origins=[
+        "https://sosy.vercel.app",
+        "https://sosy.daylightapp.asia",
+        "http://localhost:3000", 
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
