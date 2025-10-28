@@ -12,6 +12,7 @@ app = FastAPI(
 origins = [
     "https://sosy.vercel.app",
     "https://sosy.daylightapp.asia",
+    "https://api.sosy.daylightapp.asia",
     "http://localhost:3000",
     "http://localhost:8000",
 ]
