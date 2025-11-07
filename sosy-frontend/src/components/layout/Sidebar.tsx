@@ -20,6 +20,7 @@ import {
   TrendingUp,
   Shield,
   Database,
+  Sparkles,
 } from 'lucide-react';
 
 interface NavItem {

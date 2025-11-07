@@ -18,6 +18,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { PersonalityTestModal } from '@/components/personality-test/PersonalityTestModal';
+import { CreateMatchingModal } from '@/components/matching/CreateMatchingModal';
+import { matchingApi, MatchingSession } from '@/lib/api/matching';
+import { Sparkles, History } from 'lucide-react';
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -32,6 +35,10 @@ export default function EventDetailPage() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [selectedUserName, setSelectedUserName] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [isMatchingModalOpen, setIsMatchingModalOpen] = useState(false);
+  const [matchingSessions, setMatchingSessions] = useState<MatchingSession[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(false);
 
   useEffect(() => {
     const fetchEventDetail = async () => {
@@ -51,6 +58,26 @@ export default function EventDetailPage() {
       fetchEventDetail();
     }
   }, [eventId]);
+
+  useEffect(() => {
+    const fetchMatchingSessions = async () => {
+      if (!eventId) return;
+      
+      try {
+        setLoadingSessions(true);
+        const sessions = await matchingApi.getEventSessions(parseInt(eventId));
+        setMatchingSessions(sessions);
+      } catch (err) {
+        console.error('Error fetching matching sessions:', err);
+      } finally {
+        setLoadingSessions(false);
+      }
+    };
+
+    if (eventId && data) {
+      fetchMatchingSessions();
+    }
+  }, [eventId, data]);
 
   const handleViewTest = (userId: number, userName: string) => {
     setSelectedUserId(userId);
@@ -111,6 +138,15 @@ export default function EventDetailPage() {
             </Button>
             <div>
               <h2 className="text-3xl font-bold tracking-tight">Event Details</h2>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => setIsMatchingModalOpen(true)}
+                  disabled={!data || total_buyers === 0}
+                >
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Create Matching
+                </Button>
+              </div>
               <p className="text-muted-foreground">
                 View event information and buyers list
               </p>
@@ -191,6 +227,48 @@ export default function EventDetailPage() {
             )}
           </CardContent>
         </Card>
+
+        {matchingSessions.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Matching History ({matchingSessions.length})
+              </CardTitle>
+              <CardDescription>
+                Previous matching sessions for this event
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {matchingSessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => router.push(`/dashboard/events/${eventId}/matching/${session.id}`)}
+                  >
+                    <div>
+                      <p className="font-medium">
+                        Session #{session.id} - {session.conversation_style}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(session.created_at), 'MMM dd, yyyy HH:mm')}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={session.status === 'completed' ? 'default' : 'secondary'}>
+                        {session.status}
+                      </Badge>
+                      <Button variant="ghost" size="sm">
+                        View Results
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Buyers List Card */}
         <Card>
@@ -304,6 +382,16 @@ export default function EventDetailPage() {
           onOpenChange={setIsModalOpen}
           wpUserId={selectedUserId}
           userName={selectedUserName}
+        />
+      )}
+
+      {data && (
+        <CreateMatchingModal
+          open={isMatchingModalOpen}
+          onOpenChange={setIsMatchingModalOpen}
+          eventId={parseInt(eventId)}
+          eventName={event.post_title}
+          totalBuyers={total_buyers}
         />
       )}
     </>
