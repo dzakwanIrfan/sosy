@@ -9,7 +9,14 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from app.db.base import Base
-from app.models.user import User  # Import your models here
+from app.models.user import User
+from app.models.daylight_personality import (
+    DaylightPersonalityTest,
+    DaylightMatchingSession,
+    DaylightMatchingParticipant,
+    DaylightMatchingTable,
+    DaylightMatchingScore
+)
 from app.core.config import settings
 
 # this is the Alembic Config object, which provides

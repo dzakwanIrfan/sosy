@@ -21,6 +21,8 @@ import {
   Shield,
   Database,
   Sparkles,
+  Brain,
+  GitCompare,
 } from 'lucide-react';
 
 interface NavItem {
@@ -36,6 +38,38 @@ const navigation: NavItem[] = [
     title: 'Dashboard',
     href: '/dashboard',
     icon: Home,
+  },
+  {
+    title: 'Daylight Personality',
+    href: '/dashboard/daylight',
+    icon: Sparkles,
+    children: [
+      {
+        title: 'Dashboard',
+        href: '/dashboard/daylight',
+        icon: Home,
+      },
+      {
+        title: 'Take Test',
+        href: '/dashboard/daylight/test',
+        icon: Brain,
+      },
+      {
+        title: 'My Result',
+        href: '/dashboard/daylight/result/me',
+        icon: Star,
+      },
+      {
+        title: 'All Tests',
+        href: '/dashboard/daylight/tests',
+        icon: BarChart3,
+      },
+      {
+        title: 'Matching',
+        href: '/dashboard/daylight/matching',
+        icon: GitCompare,
+      },
+    ],
   },
   {
     title: 'Master Data',
@@ -74,7 +108,7 @@ interface SidebarProps {
 
 export function Sidebar({ className }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [expandedItems, setExpandedItems] = useState<string[]>(['/dashboard/daylight']);
   const pathname = usePathname();
 
   const toggleExpanded = (href: string) => {
@@ -108,8 +142,8 @@ export function Sidebar({ className }: SidebarProps) {
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         {!isCollapsed && (
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">S</span>
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <Sparkles className="h-5 w-5 text-white" />
             </div>
             <span className="font-semibold text-gray-900">SOSY Admin</span>
           </div>

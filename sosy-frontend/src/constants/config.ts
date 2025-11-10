@@ -6,6 +6,10 @@ export const API_CONFIG = {
     TEST_TOKEN: '/auth/test-token',
     USERS: '/users',
     WP_USERS: '/wp-users',
+    DAYLIGHT_TEST: '/daylight/test',
+    DAYLIGHT_TEST_ME: '/daylight/test/me',
+    DAYLIGHT_TESTS: '/daylight/tests',
+    DAYLIGHT_MATCHING: '/daylight/matching',
   },
 } as const;
 
